@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | SH-CICD Command Center{% endblock %}
+{% block page_title %}DevOps Command Center{% endblock %}
+{% block page_subtitle %}Real-time self-healing CI/CD pipeline monitoring and multi-agent dispatch{% endblock %}
+
+{% block content %}
+<!-- STAT CARDS -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon red" style="background: rgba(239, 68, 68, 0.15); color: var(--danger);">
+      <i class="fas fa-bug"></i>
+    </div>
+    <div class="stat-info">
+      <h4>Total Failures</h4>
+      <div class="stat-value">{{ stats.total_failures }}</div>
+      <div class="stat-sub">Across active pipelines</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <div class="stat-info">
+      <h4>Fixed Failures</h4>
+      <div class="stat-value">{{ stats.fixed_failures }}</div>
+      <div class="stat-sub">{{ stats.success_rate }}% auto-resolution rate</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon orange">
+      <i class="fas fa-clock"></i>
+    </div>
+    <div class="stat-info">
+      <h4>Open Failures</h4>
+      <div class="stat-value">{{ stats.open_failures }}</div>
+      <div class="stat-sub">Pending or in-progress</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon cyan">
+      <i class="fas fa-code-pull-request"></i>
+    </div>
+    <div class="stat-info">
+      <h4>Auto-Fixed PRs</h4>
+      <div class="stat-value">{{ stats.total_prs }}</div>
+      <div class="stat-sub">Created on GitHub</div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT WORKFLOW VISUALIZATION STEPPER -->
+<div class="workflow-section">
+  <div class="section-header">
+    <div class="section-title">
+      <i class="fas fa-project-diagram" style="color: var(--cyan);"></i>
+      <span>Self-Healing Multi-Agent Pipeline Workflow</span>
+    </div>
+    <span class="badge badge-info">
+      <i class="fas fa-circle-notch fa-spin"></i> Event-Driven Loop
+    </span>
+  </div>
+
+  <div class="stepper-container">
+    <!-- Node 1: Dispatcher -->
+    <div class="stepper-node" id="step-dispatcher">
+      <div class="node-icon">
+        <i class="fas fa-satellite-dish"></i>
+      </div>
+      <h5>1. Dispatcher</h5>
+      <p>Log analysis & classification</p>
+    </div>
+
+    <div class="stepper-arrow" id="arrow-1">
+      <i class="fas fa-chevron-right"></i>
+    </div>
+
+    <!-- Node 2: Context Gatherer -->
+    <div class="stepper-node" id="step-context">
+      <div class="node-icon">
+        <i class="fas fa-search-code"></i>
+      </div>
+      <h5>2. Context Gatherer</h5>
+      <p>GitHub AST & dependency fetch</p>
+    </div>
+
+    <div class="stepper-arrow" id="arrow-2">
+      <i class="fas fa-chevron-right"></i>
+    </div>
+
+    <!-- Node 3: Engineer -->
+    <div class="stepper-node" id="step-engineer">
+      <div class="node-icon">
+        <i class="fas fa-hammer"></i>
+      </div>
+      <h5>3. Engineer</h5>
+      <p>Patch generation & test validation</p>
+    </div>
+
+    <div class="stepper-arrow" id="arrow-3">
+      <i class="fas fa-chevron-right"></i>
+    </div>
+
+    <!-- Node 4: Reviewer -->
+    <div class="stepper-node" id="step-reviewer">
+      <div class="node-icon">
+        <i class="fas fa-shield-check"></i>
+      </div>
+      <h5>4. Reviewer</h5>
+      <p>Security audit & Auto-PR dispatch</p>
+    </div>
+  </div>
+</div>
+
+<!-- TWO-COLUMN SECTION: MINI TREND & AGENT STATUS -->
+<div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; margin-bottom: 30px;">
+  <!-- Mini Trend Chart -->
+  <div class="card-table" style="margin-bottom: 0;">
+    <div class="section-header">
+      <div class="section-title">
+        <i class="fas fa-chart-area" style="color: var(--primary);"></i>
+        <span>Pipeline Health Telemetry</span>
+      </div>
+      <a href="{{ url_for('analytics_view') }}" class="btn btn-secondary btn-sm">Full Analytics &rarr;</a>
+    </div>
+    <div style="height: 220px; position: relative;">
+      <canvas id="miniTrendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Real-Time Agent Status Summary -->
+  <div class="card-table" style="margin-bottom: 0;">
+    <div class="section-header">
+      <div class="section-title">
+        <i class="fas fa-microchip" style="color: var(--purple);"></i>
+        <span>Agent Fleet Status</span>
+      </div>
+      <a href="{{ url_for('agents_view') }}" class="btn btn-secondary btn-sm">Manage &rarr;</a>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      {% for agent in agents %}
+      <div style="background: var(--bg-input); padding: 12px 14px; border-radius: var(--radius-sm); border-left: 3px solid {% if agent.status == 'ACTIVE' %}var(--cyan){% elif agent.status == 'BUSY' %}var(--warning){% else %}var(--success){% endif %};">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <strong style="font-size: 0.88rem; color: #fff;">{{ agent.agent_name }}</strong>
+          <span class="badge {% if agent.status == 'ACTIVE' %}badge-info{% elif agent.status == 'BUSY' %}badge-warning{% else %}badge-success{% endif %}">
+            {{ agent.status }}
+          </span>
+        </div>
+        <div style="font-size: 0.76rem; color: var(--text-dim); text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+          {{ agent.current_task }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- RECENT CI/CD FAILURES TABLE -->
+<div class="card-table">
+  <div class="section-header">
+    <div class="section-title">
+      <i class="fas fa-bolt" style="color: var(--warning);"></i>
+      <span>Recent CI/CD Failures</span>
+    </div>
+    <a href="{{ url_for('failures_view') }}" class="btn btn-secondary btn-sm">View All Failures &rarr;</a>
+  </div>
+
+  <table class="custom-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Workflow</th>
+        <th>Error Type</th>
+        <th>Summary</th>
+        <th>Status</th>
+        <th>Detected At</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in recent_failures %}
+      <tr>
+        <td>#{{ f.id }}</td>
+        <td>
+          <strong>{{ f.workflow_name }}</strong>
+          <div style="font-size: 0.74rem; color: var(--text-dim);">{{ f.repo_name }}</div>
+        </td>
+        <td>
+          <span class="badge badge-warning">{{ f.error_type }}</span>
+        </td>
+        <td style="max-width: 320px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+          <code>{{ f.error_message }}</code>
+        </td>
+        <td>
+          {% if f.status == 'RESOLVED' %}
+            <span class="badge badge-success"><i class="fas fa-check"></i> Resolved</span>
+          {% elif f.status == 'IN_PROGRESS' %}
+            <span class="badge badge-info"><i class="fas fa-spinner fa-spin"></i> Healing</span>
+          {% else %}
+            <span class="badge badge-danger"><i class="fas fa-clock"></i> {{ f.status }}</span>
+          {% endif %}
+        </td>
+        <td style="font-size: 0.8rem; color: var(--text-muted);">{{ f.created_at }}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm" onclick="viewFailureDetails({{ f.id }})">
+            <i class="fas fa-eye"></i> Details
+          </button>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" style="text-align: center; color: var(--text-dim);">No failures recorded yet. Click "Simulate CI Failure" to test!</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- RECENT AUTO-FIXED PULL REQUESTS -->
+<div class="card-table">
+  <div class="section-header">
+    <div class="section-title">
+      <i class="fas fa-code-pull-request" style="color: var(--cyan);"></i>
+      <span>Recent Auto-Fixed Pull Requests</span>
+    </div>
+    <a href="{{ url_for('pullrequests_view') }}" class="btn btn-secondary btn-sm">View All PRs &rarr;</a>
+  </div>
+
+  <table class="custom-table">
+    <thead>
+      <tr>
+        <th>PR #</th>
+        <th>Target Branch</th>
+        <th>Fix Summary</th>
+        <th>Review Confidence</th>
+        <th>Tests</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pr in recent_prs %}
+      <tr>
+        <td><strong>#{{ pr.pr_number }}</strong></td>
+        <td><code>{{ pr.branch_name }}</code></td>
+        <td style="max-width: 260px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+          {{ pr.fix_description }}
+        </td>
+        <td>
+          <span class="badge badge-success">{{ pr.reviewer_confidence }}%</span>
+        </td>
+        <td>
+          <span class="badge badge-info"><i class="fas fa-vial"></i> {{ pr.test_status }}</span>
+        </td>
+        <td>
+          <span class="badge badge-purple">{{ pr.status }}</span>
+        </td>
+        <td>
+          <a href="{{ pr.html_url }}" target="_blank" class="btn btn-secondary btn-sm">
+            <i class="fab fa-github"></i> GitHub PR
+          </a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="7" style="text-align: center; color: var(--text-dim);">No pull requests generated yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

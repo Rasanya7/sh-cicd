@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}AI Agents | SH-CICD Fleet{% endblock %}
+{% block page_title %}Autonomous AI Agent Fleet{% endblock %}
+{% block page_subtitle %}Real-time status, health metrics, and telemetry of the four specialized pipeline agents{% endblock %}
+
+{% block content %}
+<!-- AGENT CARDS GRID -->
+<div class="agent-grid">
+  {% for agent in agents %}
+  <div class="agent-card">
+    <div class="agent-card-header">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="agent-avatar {% if agent.agent_name == 'Dispatcher' %}blue{% elif agent.agent_name == 'Context Gatherer' %}cyan{% elif agent.agent_name == 'Engineer' %}purple{% else %}green{% endif %}">
+          {% if agent.agent_name == 'Dispatcher' %}
+            <i class="fas fa-satellite-dish"></i>
+          {% elif agent.agent_name == 'Context Gatherer' %}
+            <i class="fas fa-search-nodes"></i>
+          {% elif agent.agent_name == 'Engineer' %}
+            <i class="fas fa-code"></i>
+          {% else %}
+            <i class="fas fa-user-shield"></i>
+          {% endif %}
+        </div>
+        <div>
+          <h3 style="font-size: 1.1rem; font-weight: 700;">{{ agent.agent_name }}</h3>
+          <span style="font-size: 0.75rem; color: var(--text-dim);">
+            {% if agent.agent_name == 'Dispatcher' %}Stage 1 &bull; Log Diagnosis
+            {% elif agent.agent_name == 'Context Gatherer' %}Stage 2 &bull; Codebase AST
+            {% elif agent.agent_name == 'Engineer' %}Stage 3 &bull; Patch & Test
+            {% else %}Stage 4 &bull; Security & PR
+            {% endif %}
+          </span>
+        </div>
+      </div>
+      <span class="badge {% if agent.status == 'ACTIVE' %}badge-info{% elif agent.status == 'BUSY' %}badge-warning{% else %}badge-success{% endif %}">
+        {{ agent.status }}
+      </span>
+    </div>
+
+    <div class="agent-stats-row">
+      <div class="agent-mini-stat">
+        <h6>Tasks</h6>
+        <span>{{ agent.completed_tasks }}</span>
+      </div>
+      <div class="agent-mini-stat">
+        <h6>Success</h6>
+        <span style="color: var(--success);">{{ agent.successful_fixes }}</span>
+      </div>
+      <div class="agent-mini-stat">
+        <h6>Avg Latency</h6>
+        <span>{{ agent.avg_latency_ms }}ms</span>
+      </div>
+    </div>
+
+    <div style="margin-top: 10px;">
+      <span style="font-size: 0.74rem; color: var(--text-dim); text-transform: uppercase; font-weight: 600;">Current Activity</span>
+      <div class="agent-task-box" style="margin-top: 5px;">
+        {{ agent.current_task }}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- AGENT ACTIVITY LOGS STREAM -->
+<div class="card-table">
+  <div class="section-header">
+    <div class="section-title">
+      <i class="fas fa-stream" style="color: var(--cyan);"></i>
+      <span>Recent Agent Activity Trail</span>
+    </div>
+    <span class="badge badge-info"><i class="fas fa-sync"></i> Synchronized with Database</span>
+  </div>
+
+  <table class="custom-table">
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Agent Name</th>
+        <th>Action Performed</th>
+        <th>Incident ID</th>
+        <th>Output Summary</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td style="font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">{{ log.timestamp }}</td>
+        <td>
+          <span class="badge {% if log.agent_name == 'Dispatcher' %}badge-info{% elif log.agent_name == 'Context Gatherer' %}badge-cyan{% elif log.agent_name == 'Engineer' %}badge-purple{% else %}badge-success{% endif %}">
+            {{ log.agent_name }}
+          </span>
+        </td>
+        <td><strong>{{ log.action }}</strong></td>
+        <td><a href="#" onclick="viewFailureDetails({{ log.failure_id }}); return false;">#{{ log.failure_id }}</a></td>
+        <td style="color: var(--text-muted); font-size: 0.84rem;">
+          {{ log.output_summary }}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="5" style="text-align: center; color: var(--text-dim);">No agent actions logged yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

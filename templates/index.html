@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SH-CICD | Autonomous Self-Healing Multi-Agent CI/CD System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body style="background-color: #070a13;">
+
+<div class="hero-wrapper">
+  <!-- Top Navigation -->
+  <nav class="landing-nav">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div class="logo-badge">
+        <i class="fas fa-network-wired"></i>
+      </div>
+      <div>
+        <h2 style="font-weight: 700; font-size: 1.3rem; letter-spacing: 0.5px;">SH-CICD</h2>
+        <span style="font-size: 0.75rem; color: var(--cyan);">Self-Healing Continuous Delivery</span>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <a href="#features" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Features</a>
+      <a href="#architecture" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Multi-Agent AI</a>
+      <a href="#technologies" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Tech Stack</a>
+      <a href="{{ url_for('dashboard_view') }}" class="btn btn-primary">
+        <i class="fas fa-rocket"></i> Launch Dashboard
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-grid">
+    <div class="hero-left">
+      <div class="badge badge-info" style="margin-bottom: 18px; padding: 6px 14px;">
+        <i class="fas fa-sparkles"></i> Final-Year CSE Major Project
+      </div>
+      <h1>Autonomous Self-Healing CI/CD with <span style="background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Multi-Agent AI</span></h1>
+      <p>
+        Eliminate broken builds and reduce developer downtime. SH-CICD automatically intercepts GitHub Actions pipeline failures, extracts codebase context, generates surgical code fixes, audits for security and tests, and issues Auto-Fixed Pull Requests without human intervention.
+      </p>
+
+      <div style="display: flex; gap: 16px; align-items: center;">
+        <a href="{{ url_for('dashboard_view') }}" class="btn btn-primary" style="padding: 14px 28px; font-size: 1rem;">
+          <i class="fas fa-bolt"></i> Launch Live Dashboard
+        </a>
+        <a href="#features" class="btn btn-secondary" style="padding: 14px 24px; font-size: 1rem;">
+          <i class="fas fa-book-open"></i> Explore Agents
+        </a>
+      </div>
+
+      <div style="display: flex; gap: 30px; margin-top: 40px; border-top: 1px solid var(--border-color); padding-top: 24px;">
+        <div>
+          <h3 style="color: #fff; font-size: 1.5rem; font-weight: 700;">4</h3>
+          <span style="color: var(--text-dim); font-size: 0.8rem;">Specialized AI Agents</span>
+        </div>
+        <div>
+          <h3 style="color: #10b981; font-size: 1.5rem; font-weight: 700;">&lt; 5s</h3>
+          <span style="color: var(--text-dim); font-size: 0.8rem;">Average Healing Time</span>
+        </div>
+        <div>
+          <h3 style="color: #06b6d4; font-size: 1.5rem; font-weight: 700;">100%</h3>
+          <span style="color: var(--text-dim); font-size: 0.8rem;">Autonomous Pull Requests</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Animated AI / DevOps Graphic on the Right -->
+    <div class="hero-visual">
+      <div class="hero-glow-bg"></div>
+      <div class="hero-card-mockup">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+          <div style="display: flex; gap: 6px;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span>
+          </div>
+          <span style="font-size: 0.75rem; color: var(--cyan); font-family: 'JetBrains Mono', monospace;">pipeline-monitor.sh</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;">
+          <div style="color: #fca5a5;">
+            <i class="fas fa-times-circle"></i> [FAIL] GitHub Actions: SyntaxError at calculator.py:4
+          </div>
+          <div style="color: #38bdf8;">
+            <i class="fas fa-arrow-right"></i> [Dispatcher] Categorized as SyntaxError
+          </div>
+          <div style="color: #c084fc;">
+            <i class="fas fa-arrow-right"></i> [Context Gatherer] Extracted AST & dependencies
+          </div>
+          <div style="color: #fbbf24;">
+            <i class="fas fa-arrow-right"></i> [Engineer] Synthesized patch: Added missing ':'
+          </div>
+          <div style="color: #34d399;">
+            <i class="fas fa-check-double"></i> [Reviewer] Patch APPROVED (Confidence: 98.5%)
+          </div>
+          <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; padding: 10px; margin-top: 6px; color: #a7f3d0;">
+            <i class="fas fa-code-pull-request"></i> PR #106 Created: <code>fix/auto-healed-calculator</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" style="margin-bottom: 80px;">
+    <div style="text-align: center; margin-bottom: 48px;">
+      <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 8px;">Key System Capabilities</h2>
+      <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">
+        Designed from the ground up for resilient, self-correcting software delivery life cycles.
+      </p>
+    </div>
+
+    <div class="feature-cards">
+      <div class="feature-box">
+        <div class="feat-icon"><i class="fas fa-bullseye"></i></div>
+        <h3 style="font-size: 1.15rem; margin-bottom: 10px;">Automated Failure Triage</h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">
+          The Dispatcher Agent parses unstructured console outputs, regex tracebacks, and classifying build, syntax, and dependency failures with zero manual oversight.
+        </p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feat-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--cyan);"><i class="fas fa-folder-tree"></i></div>
+        <h3 style="font-size: 1.15rem; margin-bottom: 10px;">Smart Context Retrieval</h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">
+          Context Gatherer uses the GitHub REST API to isolate the failing source code, parse repository ASTs, check configuration files, and retrieve relevant test suites.
+        </p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feat-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple);"><i class="fas fa-code-merge"></i></div>
+        <h3 style="font-size: 1.15rem; margin-bottom: 10px;">Pre-Tested Surgical Patches</h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">
+          The Engineer Agent crafts localized, minimal fixes and executes sandboxed pre-submission unit tests to verify correctness before submitting proposals.
+        </p>
+      </div>
+
+      <div class="feature-box">
+        <div class="feat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success);"><i class="fas fa-shield-halved"></i></div>
+        <h3 style="font-size: 1.15rem; margin-bottom: 10px;">Security & Quality Gate</h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem;">
+          The Reviewer Agent audits patches against malicious arbitrary executions, scope creep, and hallucinations, automatically raising an Auto-Fixed Pull Request on GitHub upon passing.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture / Agents Section -->
+  <section id="architecture" style="margin-bottom: 80px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 40px;">
+    <div style="text-align: center; margin-bottom: 36px;">
+      <h2 style="font-size: 1.9rem; font-weight: 700; margin-bottom: 8px;">Collaborative Multi-Agent Architecture</h2>
+      <p style="color: var(--text-muted); max-width: 650px; margin: 0 auto;">
+        Four specialized AI agents operating in an event-driven consensus loop.
+      </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; text-align: center;">
+      <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(59, 130, 246, 0.2); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-weight: 700;">1</div>
+        <h4 style="color: #fff; margin-bottom: 6px;">Dispatcher Agent</h4>
+        <p style="color: var(--text-dim); font-size: 0.8rem;">Parses raw CI failure logs and classifies error category.</p>
+      </div>
+      <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(6, 182, 212, 0.2); color: var(--cyan); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-weight: 700;">2</div>
+        <h4 style="color: #fff; margin-bottom: 6px;">Context Gatherer</h4>
+        <p style="color: var(--text-dim); font-size: 0.8rem;">Fetches repo files, AST trees, dependencies, and commits.</p>
+      </div>
+      <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(139, 92, 246, 0.2); color: var(--purple); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-weight: 700;">3</div>
+        <h4 style="color: #fff; margin-bottom: 6px;">Engineer Agent</h4>
+        <p style="color: var(--text-dim); font-size: 0.8rem;">Diagnoses root cause, writes code fix, and tests patch.</p>
+      </div>
+      <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); color: var(--success); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-weight: 700;">4</div>
+        <h4 style="color: #fff; margin-bottom: 6px;">Reviewer Agent</h4>
+        <p style="color: var(--text-dim); font-size: 0.8rem;">Performs security audit and triggers Auto-Fixed Pull Request.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Technology Section -->
+  <section id="technologies" style="margin-bottom: 60px;">
+    <div style="text-align: center; margin-bottom: 30px;">
+      <h3 style="font-size: 1.4rem; color: var(--text-muted);">Built with Modern Engineering Technologies</h3>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px;">
+      <span class="badge" style="padding: 10px 18px; font-size: 0.88rem; background: var(--bg-card); color: #fff; border: 1px solid var(--border-color);"><i class="fab fa-python" style="color: #38bdf8;"></i> Python 3.11</span>
+      <span class="badge" style="padding: 10px 18px; font-size: 0.88rem; background: var(--bg-card); color: #fff; border: 1px solid var(--border-color);"><i class="fas fa-server" style="color: #34d399;"></i> Flask Microframework</span>
+      <span class="badge" style="padding: 10px 18px; font-size: 0.88rem; background: var(--bg-card); color: #fff; border: 1px solid var(--border-color);"><i class="fab fa-github" style="color: #f1f5f9;"></i> GitHub Actions & REST API</span>
+      <span class="badge" style="padding: 10px 18px; font-size: 0.88rem; background: var(--bg-card); color: #fff; border: 1px solid var(--border-color);"><i class="fas fa-brain" style="color: #c084fc;"></i> Google Gemini & OpenAI LLMs</span>
+      <span class="badge" style="padding: 10px 18px; font-size: 0.88rem; background: var(--bg-card); color: #fff; border: 1px solid var(--border-color);"><i class="fas fa-database" style="color: #fbbf24;"></i> SQLite Database</span>
+      <span class="badge" style="padding: 10px 18px; font-size: 0.88rem; background: var(--bg-card); color: #fff; border: 1px solid var(--border-color);"><i class="fas fa-chart-pie" style="color: #f87171;"></i> Chart.js Data Visualizations</span>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="text-align: center; border-top: 1px solid var(--border-color); padding-top: 30px; color: var(--text-dim); font-size: 0.85rem;">
+    <p>SH-CICD &bull; Self-Healing Continuous Integration and Continuous Deployment using Multi-Agent AI</p>
+    <p style="margin-top: 6px;">Final Year CSE Capstone Project &bull; 2026</p>
+  </footer>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}CI/CD Failures | SH-CICD{% endblock %}
+{% block page_title %}CI/CD Failure Incidents{% endblock %}
+{% block page_subtitle %}Comprehensive audit log of pipeline interruptions, root cause diagnoses, and healing states{% endblock %}
+
+{% block content %}
+<div class="card-table">
+  <div class="section-header">
+    <div class="section-title">
+      <i class="fas fa-bug" style="color: var(--danger);"></i>
+      <span>All Logged Incidents</span>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('simulationModal')">
+      <i class="fas fa-plus"></i> New Failure Simulation
+    </button>
+  </div>
+
+  <table class="custom-table">
+    <thead>
+      <tr>
+        <th>Failure ID</th>
+        <th>Repository</th>
+        <th>Workflow</th>
+        <th>Error Type</th>
+        <th>Error Message</th>
+        <th>Status</th>
+        <th>Timestamp</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in failures %}
+      <tr>
+        <td><strong>#{{ f.id }}</strong></td>
+        <td><code>{{ f.repo_name }}</code></td>
+        <td><strong>{{ f.workflow_name }}</strong></td>
+        <td>
+          <span class="badge badge-warning">{{ f.error_type }}</span>
+        </td>
+        <td style="max-width: 280px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+          <code>{{ f.error_message }}</code>
+        </td>
+        <td>
+          {% if f.status == 'RESOLVED' %}
+            <span class="badge badge-success"><i class="fas fa-check"></i> Resolved</span>
+          {% elif f.status == 'IN_PROGRESS' %}
+            <span class="badge badge-info"><i class="fas fa-spinner fa-spin"></i> Healing</span>
+          {% else %}
+            <span class="badge badge-danger">{{ f.status }}</span>
+          {% endif %}
+        </td>
+        <td style="font-size: 0.8rem; color: var(--text-muted);">{{ f.created_at }}</td>
+        <td>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary btn-sm" onclick="viewFailureDetails({{ f.id }})">
+              <i class="fas fa-search"></i> Inspect
+            </button>
+            {% if f.status != 'RESOLVED' %}
+            <button class="btn btn-primary btn-sm" onclick="retriggerHealing({{ f.id }})">
+              <i class="fas fa-sync-alt"></i> Heal
+            </button>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="8" style="text-align: center; color: var(--text-dim);">No failures recorded in database.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+async function retriggerHealing(failureId) {
+  showToast(`Re-triggering AI healing pipeline for #${failureId}...`, 'info');
+  try {
+    const res = await fetch(`/api/failures/${failureId}/heal`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Success! Auto-Fixed PR #${data.pull_request.pr_number} created.`, 'success');
+      setTimeout(() => window.location.reload(), 1500);
+    } else {
+      showToast(`Reviewer did not approve fix: ${data.verdict}`, 'danger');
+    }
+  } catch (e) {
+    showToast("Healing request failed: " + e.message, 'danger');
+  }
+}
+</script>
+{% endblock %}

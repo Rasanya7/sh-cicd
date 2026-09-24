@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SH-CICD | Self-Healing CI/CD Multi-Agent AI{% endblock %}</title>
+  
+  <!-- Google Fonts: Poppins & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js 4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<div class="app-container">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-badge">
+        <i class="fas fa-microchip"></i>
+      </div>
+      <div class="logo-title">
+        <h2>SH-CICD</h2>
+        <span>Multi-Agent AI Healer</span>
+      </div>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li>
+        <a href="{{ url_for('dashboard_view') }}" class="{% if request.endpoint == 'dashboard_view' %}active{% endif %}">
+          <i class="fas fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('failures_view') }}" class="{% if request.endpoint == 'failures_view' %}active{% endif %}">
+          <i class="fas fa-bug"></i>
+          <span>CI/CD Failures</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('agents_view') }}" class="{% if request.endpoint == 'agents_view' %}active{% endif %}">
+          <i class="fas fa-robot"></i>
+          <span>AI Agents</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('analytics_view') }}" class="{% if request.endpoint == 'analytics_view' %}active{% endif %}">
+          <i class="fas fa-chart-line"></i>
+          <span>Analytics</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('pullrequests_view') }}" class="{% if request.endpoint == 'pullrequests_view' %}active{% endif %}">
+          <i class="fas fa-code-pull-request"></i>
+          <span>Auto-Fixed PRs</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('settings_view') }}" class="{% if request.endpoint == 'settings_view' %}active{% endif %}">
+          <i class="fas fa-sliders-h"></i>
+          <span>Settings</span>
+        </a>
+      </li>
+      <li style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+        <a href="{{ url_for('index') }}" target="_blank">
+          <i class="fas fa-external-link-alt"></i>
+          <span>Project Landing</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="status-indicator">
+        <div class="pulse-dot"></div>
+        <span>System Active (Demo Mode)</span>
+      </div>
+      <div>Autonomous Pipeline Healer v1.0</div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <header class="top-bar">
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <button class="btn btn-secondary btn-sm" onclick="toggleSidebar()" style="display: none;" id="menuToggleBtn">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="page-title">
+          <h1>{% block page_title %}DevOps Command Center{% endblock %}</h1>
+          <p>{% block page_subtitle %}Real-time self-healing CI/CD monitoring and multi-agent dispatch{% endblock %}</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-primary" onclick="openModal('simulationModal')">
+          <i class="fas fa-bolt"></i>
+          <span>Simulate CI Failure</span>
+        </button>
+        <span class="badge badge-info" style="padding: 8px 14px;">
+          <i class="fab fa-github"></i> demo-user/sh-cicd-demo
+        </span>
+      </div>
+    </header>
+
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<!-- SIMULATION MODAL -->
+<div id="simulationModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 style="display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-flask" style="color: var(--cyan);"></i> Simulate CI/CD Failure
+      </h3>
+      <button class="close-modal-btn" onclick="closeModal('simulationModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 16px;">
+        Choose a realistic failure scenario to trigger the autonomous multi-agent pipeline (Dispatcher &rarr; Context Gatherer &rarr; Engineer &rarr; Reviewer &rarr; Auto-PR):
+      </p>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 18px;">
+        <button class="btn btn-secondary btn-sm" onclick="selectScenario('syntax')">
+          <i class="fas fa-code"></i> 1. SyntaxError (Missing ':')
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="selectScenario('zerodiv')">
+          <i class="fas fa-divide"></i> 2. ZeroDivisionError
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="selectScenario('assertion')">
+          <i class="fas fa-vial"></i> 3. AssertionError
+        </button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 4px;">Workflow Name</label>
+          <input type="text" id="simWorkflow" class="form-control" value="Python CI Suite" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm);">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 4px;">Error Classification</label>
+          <input type="text" id="simErrorType" class="form-control" value="SyntaxError" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm);">
+        </div>
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 4px;">CI/CD Console Error Logs</label>
+          <textarea id="simLogs" rows="6" style="width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--border-color); color: #e2e8f0; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; border-radius: var(--radius-sm);">Run python -m py_compile demo_repo/calculator.py
+  File "demo_repo/calculator.py", line 4
+    def add(a, b)
+                 ^
+SyntaxError: expected ':'
+Error: Process completed with exit code 1.</textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('simulationModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="triggerLiveSimulation()">
+        <i class="fas fa-play"></i> Run Multi-Agent Healing
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAILS MODAL -->
+<div id="failureDetailModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 style="display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-microchip" style="color: var(--cyan);"></i> Incident Investigation & Fix Trail
+      </h3>
+      <button class="close-modal-btn" onclick="closeModal('failureDetailModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="failureDetailBody">
+      <!-- Dynamic via dashboard.js -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('failureDetailModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

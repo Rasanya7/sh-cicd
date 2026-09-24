@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Auto-Fixed Pull Requests | SH-CICD{% endblock %}
+{% block page_title %}Autonomous Pull Requests{% endblock %}
+{% block page_subtitle %}Pull requests generated automatically by the multi-agent AI system on GitHub{% endblock %}
+
+{% block content %}
+<div class="card-table">
+  <div class="section-header">
+    <div class="section-title">
+      <i class="fas fa-code-pull-request" style="color: var(--cyan);"></i>
+      <span>Pull Requests Tracked</span>
+    </div>
+    <span class="badge badge-info"><i class="fab fa-git-alt"></i> Automated Branch & Commit Automation</span>
+  </div>
+
+  <table class="custom-table">
+    <thead>
+      <tr>
+        <th>PR #</th>
+        <th>Repository</th>
+        <th>Branch Name</th>
+        <th>Fix Description</th>
+        <th>Reviewer Verdict</th>
+        <th>Pre-Tests</th>
+        <th>PR Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pr in pull_requests %}
+      <tr>
+        <td><strong>#{{ pr.pr_number }}</strong></td>
+        <td><code>{{ pr.repo_name }}</code></td>
+        <td><code style="color: var(--cyan);">{{ pr.branch_name }}</code></td>
+        <td style="max-width: 250px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+          {{ pr.fix_description }}
+        </td>
+        <td>
+          <span class="badge badge-success">
+            <i class="fas fa-shield-check"></i> {{ pr.reviewer_status }} ({{ pr.reviewer_confidence }}%)
+          </span>
+        </td>
+        <td>
+          <span class="badge badge-info">
+            <i class="fas fa-check-double"></i> {{ pr.test_status }}
+          </span>
+        </td>
+        <td>
+          {% if pr.status == 'MERGED' %}
+            <span class="badge badge-purple"><i class="fas fa-code-merge"></i> Merged</span>
+          {% elif pr.status == 'OPEN' %}
+            <span class="badge badge-success"><i class="fas fa-circle-notch fa-spin"></i> Open</span>
+          {% else %}
+            <span class="badge badge-danger">{{ pr.status }}</span>
+          {% endif %}
+        </td>
+        <td>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary btn-sm" onclick="showDiffModal({{ pr.id }})">
+              <i class="fas fa-file-code"></i> Diff
+            </button>
+            <a href="{{ pr.html_url }}" target="_blank" class="btn btn-primary btn-sm">
+              <i class="fab fa-github"></i> View
+            </a>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="8" style="text-align: center; color: var(--text-dim);">No pull requests recorded yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- PR DIFF MODAL -->
+<div id="diffModal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 800px;">
+    <div class="modal-header">
+      <h3 style="display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-file-diff" style="color: var(--cyan);"></i> Autonomous Patch Diff
+      </h3>
+      <button class="close-modal-btn" onclick="closeModal('diffModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="diffDetailsHeader" style="margin-bottom: 12px; font-size: 0.88rem; color: var(--text-muted);"></div>
+      <pre id="diffContent" class="diff-viewer" style="max-height: 400px;"></pre>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('diffModal')">Close</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function showDiffModal(prId) {
+  try {
+    const res = await fetch(`/api/pullrequests/${prId}`);
+    const data = await res.json();
+    if (!data.pr) return;
+
+    const pr = data.pr;
+    document.getElementById('diffDetailsHeader').innerHTML = `
+      <strong>PR #${pr.pr_number}</strong> &bull; Branch: <code>${pr.branch_name}</code> &bull; 
+      <span class="badge badge-success">${pr.reviewer_confidence}% Confidence</span>
+    `;
+
+    // Format diff lines
+    const rawDiff = pr.patch_diff || 'No diff available.';
+    const formatted = rawDiff.split('\n').map(line => {
+      if (line.startsWith('+') && !line.startsWith('+++')) {
+        return `<span class="diff-add">${escapeHtml(line)}</span>`;
+      } else if (line.startsWith('-') && !line.startsWith('---')) {
+        return `<span class="diff-del">${escapeHtml(line)}</span>`;
+      } else if (line.startsWith('@@') || line.startsWith('---') || line.startsWith('+++')) {
+        return `<span class="diff-header">${escapeHtml(line)}</span>`;
+      }
+      return escapeHtml(line);
+    }).join('\n');
+
+    document.getElementById('diffContent').innerHTML = formatted;
+    openModal('diffModal');
+  } catch (err) {
+    showToast("Failed to fetch diff: " + err.message, 'danger');
+  }
+}
+
+function escapeHtml(text) {
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+</script>
+{% endblock %}

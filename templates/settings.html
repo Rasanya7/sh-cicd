@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Settings | SH-CICD Configuration{% endblock %}
+{% block page_title %}System Configuration{% endblock %}
+{% block page_subtitle %}Manage GitHub credentials, AI/LLM providers, webhook secrets, and autonomous guardrails{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px;">
+  <form id="settingsForm" onsubmit="saveSettings(event)">
+    
+    <!-- SYSTEM & DEMO MODE CARD -->
+    <div class="card-table">
+      <div class="section-header">
+        <div class="section-title">
+          <i class="fas fa-toggle-on" style="color: var(--cyan);"></i>
+          <span>Execution Environment & Demo Mode</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-input); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <div>
+            <strong style="color: #fff; font-size: 0.95rem;">Interactive Demo Mode (Zero-Cost / Offline)</strong>
+            <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">
+              When enabled, the system uses built-in heuristic AST repair and mock GitHub PR generation. No API keys or GitHub tokens are required!
+            </p>
+          </div>
+          <label style="position: relative; display: inline-block; width: 48px; height: 26px;">
+            <input type="checkbox" name="demo_mode" id="demo_mode" {% if settings.demo_mode %}checked{% endif %} style="opacity: 0; width: 0; height: 0;">
+            <span class="slider" onclick="toggleCheckbox('demo_mode')" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: {% if settings.demo_mode %}var(--cyan){% else %}#334155{% endif %}; border-radius: 34px; transition: .3s;"></span>
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-input); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <div>
+            <strong style="color: #fff; font-size: 0.95rem;">Auto-Create Pull Requests</strong>
+            <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px;">
+              Automatically push healing branches and open PRs upon Reviewer approval.
+            </p>
+          </div>
+          <label style="position: relative; display: inline-block; width: 48px; height: 26px;">
+            <input type="checkbox" name="auto_pr_enabled" id="auto_pr_enabled" {% if settings.auto_pr_enabled %}checked{% endif %} style="opacity: 0; width: 0; height: 0;">
+            <span class="slider" onclick="toggleCheckbox('auto_pr_enabled')" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: {% if settings.auto_pr_enabled %}var(--cyan){% else %}#334155{% endif %}; border-radius: 34px; transition: .3s;"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- GITHUB INTEGRATION CARD -->
+    <div class="card-table">
+      <div class="section-header">
+        <div class="section-title">
+          <i class="fab fa-github" style="color: var(--primary);"></i>
+          <span>GitHub Integration Settings</span>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="testGitHubConnection()">
+          <i class="fas fa-plug"></i> Test Connection
+        </button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+        <div style="grid-column: 1 / -1;">
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 6px;">
+            GitHub Personal Access Token (PAT)
+          </label>
+          <input type="password" name="github_token" id="github_token" value="{{ settings.github_token }}" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace;">
+          <span style="font-size: 0.74rem; color: var(--text-dim); margin-top: 4px; display: block;">Requires <code>repo</code> and <code>workflow</code> scopes.</span>
+        </div>
+
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 6px;">Target Repository</label>
+          <input type="text" name="target_repo" value="{{ settings.target_repo }}" placeholder="owner/repo-name" style="width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm);">
+        </div>
+
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 6px;">Webhook Secret</label>
+          <input type="text" name="webhook_secret" value="{{ settings.webhook_secret }}" placeholder="HMAC webhook secret key" style="width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm);">
+        </div>
+      </div>
+
+      <div style="margin-top: 16px; background: #080d1a; padding: 12px; border-radius: var(--radius-sm); border: 1px dashed var(--border-color);">
+        <span style="font-size: 0.76rem; color: var(--cyan);"><i class="fas fa-info-circle"></i> GitHub Webhook URL Endpoint:</span>
+        <code style="font-size: 0.8rem; color: #fff; display: block; margin-top: 4px;">http://your-server-or-ngrok/webhook/github</code>
+      </div>
+    </div>
+
+    <!-- AI / LLM CONFIGURATION CARD -->
+    <div class="card-table">
+      <div class="section-header">
+        <div class="section-title">
+          <i class="fas fa-brain" style="color: var(--purple);"></i>
+          <span>AI / LLM Engine Configuration</span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 6px;">AI Provider</label>
+          <select name="ai_provider" id="ai_provider" style="width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm);">
+            <option value="demo" {% if settings.ai_provider == 'demo' %}selected{% endif %}>Offline Built-in Heuristic Engine (No API key needed)</option>
+            <option value="gemini" {% if settings.ai_provider == 'gemini' %}selected{% endif %}>Google Gemini API</option>
+            <option value="openai" {% if settings.ai_provider == 'openai' %}selected{% endif %}>OpenAI (GPT-4o / GPT-4o-mini)</option>
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 6px;">Model Name</label>
+          <input type="text" name="ai_model_name" value="{{ settings.ai_model_name }}" placeholder="gemini-1.5-flash / gpt-4o-mini" style="width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm);">
+        </div>
+
+        <div style="grid-column: 1 / -1;">
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 6px;">API Key (Gemini or OpenAI)</label>
+          <input type="password" name="ai_api_key" value="{{ settings.ai_api_key }}" placeholder="AIzaSy... / sk-..." style="width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace;">
+        </div>
+
+        <div>
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 6px;">Reviewer Min Confidence Threshold (%)</label>
+          <input type="number" name="min_confidence_threshold" value="{{ settings.min_confidence_threshold }}" min="50" max="100" step="1" style="width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm);">
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVE ACTIONS -->
+    <div style="display: flex; justify-content: flex-end; gap: 14px; margin-bottom: 40px;">
+      <button type="submit" class="btn btn-primary" style="padding: 12px 28px;">
+        <i class="fas fa-save"></i> Save Configuration
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleCheckbox(id) {
+  const cb = document.getElementById(id);
+  cb.checked = !cb.checked;
+  const slider = cb.nextElementSibling;
+  slider.style.backgroundColor = cb.checked ? 'var(--cyan)' : '#334155';
+}
+
+async function saveSettings(e) {
+  e.preventDefault();
+  const form = document.getElementById('settingsForm');
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData.entries());
+  data.demo_mode = document.getElementById('demo_mode').checked;
+  data.auto_pr_enabled = document.getElementById('auto_pr_enabled').checked;
+
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast("System settings saved successfully!", "success");
+    } else {
+      showToast("Error saving settings: " + result.error, "danger");
+    }
+  } catch (err) {
+    showToast("Network error: " + err.message, "danger");
+  }
+}
+
+async function testGitHubConnection() {
+  const token = document.getElementById('github_token').value;
+  if (!token) {
+    showToast("Demo Mode is active. Add a GitHub PAT to test live connection.", "info");
+    return;
+  }
+  showToast("Testing GitHub API connection...", "info");
+  try {
+    const res = await fetch('/api/test-github', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token })
+    });
+    const result = await res.json();
+    if (result.authenticated) {
+      showToast("GitHub Connection Authenticated!", "success");
+    } else {
+      showToast("GitHub Authentication Failed. Verify token.", "danger");
+    }
+  } catch (e) {
+    showToast("Connection test failed: " + e.message, "danger");
+  }
+}
+</script>
+{% endblock %}
