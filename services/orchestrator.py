@@ -56,6 +56,13 @@ class MultiAgentOrchestrator:
             workflow_name = failure_data.get("workflow_name", "Python CI Suite")
             run_id = failure_data.get("run_id", f"run-{int(time.time())}")
 
+            # If in live mode and logs are minimal, attempt to fetch full console logs from GitHub
+            if not self.github_service.demo_mode and run_id and len(raw_logs.strip().splitlines()) <= 2:
+                live_logs = self.github_service.get_workflow_run_logs(run_id)
+                if live_logs:
+                    raw_logs = live_logs
+                    failure_info["raw_logs"] = live_logs
+
             failure_id = create_failure(
                 repo_name=repo_name,
                 workflow_name=workflow_name,

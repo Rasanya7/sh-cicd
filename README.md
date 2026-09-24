@@ -1,4 +1,6 @@
-# SH-CICD: Self-Healing Continuous Integration and Continuous Deployment using Multi-Agent AI
+# Agentic Autofix pipeline in github
+
+## SH-CICD: Self-Healing Continuous Integration and Continuous Deployment using Multi-Agent AI
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Flask 3.0](https://img.shields.io/badge/framework-Flask--3.0-green.svg)](https://flask.palletsprojects.com/)
@@ -233,44 +235,191 @@ Open your browser and navigate to: **`http://127.0.0.1:5000`**
 
 ---
 
-## 7. How GitHub Actions & Webhooks Connect to the System
+## 7. Step-by-Step Process: How to Connect Your GitHub Repository to SH-CICD
 
-### 1. GitHub Actions Workflow Configuration
-In your repository's `.github/workflows/test.yml`:
-```yaml
-name: Python CI Suite
-on: [push, pull_request]
+Connecting your repository enables SH-CICD to autonomously intercept your pipeline failures, repair the code, run sandboxed tests, and open Auto-Fixed Pull Requests on GitHub without human intervention.
 
-jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: pip install -r requirements.txt
-      - run: python -m py_compile demo_repo/calculator.py
-      - run: python -m unittest discover -s demo_repo -p "test_*.py"
-
-      # Notify SH-CICD Webhook on failure
-      - name: Trigger Self-Healing
-        if: failure()
-        env:
-          WEBHOOK_URL: ${{ secrets.SH_CICD_WEBHOOK_URL }}
-        run: |
-          curl -X POST "$WEBHOOK_URL" \
-            -H "Content-Type: application/json" \
-            -d "{\"repository\": \"${{ github.repository }}\", \"workflow\": \"${{ github.workflow }}\", \"run_id\": \"${{ github.run_id }}\", \"status\": \"failed\"}"
+```mermaid
+flowchart LR
+    A[User's GitHub Repo] -->|1. Test Fails| B[GitHub Actions]
+    B -->|2. Webhook Event| C[SH-CICD Server /webhook/github]
+    C -->|3. Diagnose & Patch| D[4 AI Agents]
+    D -->|4. Test & Audit| E{Approved?}
+    E -->|5. Yes: Push Branch & Open PR| A
 ```
 
-### 2. GitHub Webhook Delivery
-- Go to repository **Settings &rarr; Webhooks &rarr; Add Webhook**.
-- Payload URL: `http://<your-server-or-ngrok-domain>/webhook/github`
-- Content type: `application/json`
-- Secret: `<your_webhook_secret>`
-- Events: Select **Workflow runs** or **Check runs**.
-- When any job fails, GitHub delivers a signed HMAC-SHA256 payload to `/webhook/github`.
+---
+
+### Step 1: Generate a GitHub Personal Access Token (PAT)
+SH-CICD uses GitHub REST API v3 to read repository context, create healing branches (`sh-cicd/auto-fix-...`), commit minimal patches, and open Pull Requests.
+
+1. Navigate to: [github.com/settings/tokens](https://github.com/settings/tokens) (GitHub Settings &rarr; Developer Settings &rarr; Personal Access Tokens &rarr; Tokens (classic)).
+2. Click **Generate new token (classic)**.
+3. Set Note: `SH-CICD-Agentic-Autofix`.
+4. Select Expiration: `90 days` or `No expiration`.
+5. Select the following permissions:
+   - [x] **`repo`** (Full control of private repositories: `repo:status`, `repo_deployment`, `public_repo`, `repo:invite`)
+   - [x] **`workflow`** (Update GitHub Action workflows)
+   - [x] **`read:user`** (Read user profile)
+6. Click **Generate token** and copy the resulting string (starts with `ghp_`).
+
+---
+
+### Step 2: Configure SH-CICD Settings
+You can configure credentials either in `.env` or through the interactive Web Settings UI:
+
+#### Option A: Via Web UI
+1. Open the dashboard at `http://127.0.0.1:5000/settings`.
+2. Toggle **Demo Mode** to **OFF** (switches from mock mode to live GitHub integration).
+3. Paste your **GitHub Personal Access Token**.
+4. Enter your **Target Repository** (e.g. `your-username/your-repo`).
+5. Set your **Webhook Secret** (e.g. `sh_cicd_secret_2026`).
+6. Click **Test Connection** to verify API access, then click **Save Settings**.
+
+#### Option B: Via `.env` File
+```env
+# Execution Mode
+DEMO_MODE=false
+AUTO_PR_ENABLED=true
+MIN_CONFIDENCE_THRESHOLD=80.0
+
+# GitHub Integration
+GITHUB_TOKEN=ghp_yourActualGitHubPersonalAccessTokenHere
+GITHUB_REPO=your-username/your-repo-name
+WEBHOOK_SECRET=sh_cicd_secret_2026
+
+# AI Provider (gemini / openai / demo)
+AI_PROVIDER=gemini
+GEMINI_API_KEY=AIzaSyYourGeminiApiKeyHere
+AI_MODEL_NAME=gemini-1.5-flash
+```
+
+---
+
+### Step 3: Expose Local Webhook Server to the Internet
+Since GitHub Actions runs in GitHub's cloud, it requires a publicly accessible HTTPS endpoint to send webhook failure payloads.
+
+In a separate terminal, expose your local Flask server (running on port 5000):
+```bash
+# Using ngrok:
+ngrok http 5000
+
+# Or using Cloudflare Tunnel (100% free, no account required):
+cloudflared tunnel --url http://localhost:5000
+```
+ngrok will print an HTTPS forwarding address such as:
+`https://abc1-103-21-125-9.ngrok-free.app`
+
+Your Webhook Endpoint URL is:
+`https://abc1-103-21-125-9.ngrok-free.app/webhook/github`
+
+---
+
+### Step 4: Configure the Webhook in Your GitHub Repository
+
+#### Automated 1-Click Setup:
+Run the interactive connection assistant in your terminal:
+```bash
+python connect_repo.py
+```
+This utility authenticates with your repository and creates the webhook on GitHub automatically!
+
+#### Manual Setup via GitHub Website:
+1. In your GitHub repository, go to **Settings &rarr; Webhooks &rarr; Add Webhook**.
+2. Configure the webhook:
+   - **Payload URL:** `https://<your-ngrok-or-domain>.ngrok-free.app/webhook/github`
+   - **Content type:** `application/json` *(Important: Must be JSON)*
+   - **Secret:** Enter the secret configured in Step 2 (`sh_cicd_secret_2026`).
+   - **SSL verification:** Enable SSL verification.
+   - **Which events would you like to trigger this webhook?**
+     - Select: **Let me select individual events.**
+     - Check: [x] **Workflow runs**
+     - Check: [x] **Check runs**
+   - **Active:** Ensure checked.
+3. Click **Add webhook**.
+
+---
+
+### Step 5: Add Self-Healing CI Workflow to Your Repository
+In your target repository, create `.github/workflows/autofix.yml`:
+
+```yaml
+name: Python CI with Agentic Autofix
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Test Suite
+        id: run_tests
+        run: |
+          python -m unittest discover -s . -p "test_*.py"
+
+      # Intercept Failure and Dispatch to SH-CICD
+      - name: Trigger Agentic Autofix on Failure
+        if: failure()
+        env:
+          SH_CICD_WEBHOOK: ${{ secrets.SH_CICD_WEBHOOK_URL }}
+        run: |
+          echo "CI Failure detected! Notifying SH-CICD Agentic Autofix..."
+          curl -X POST "$SH_CICD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d @- << 'EOF'
+          {
+            "repository": "${{ github.repository }}",
+            "workflow": "${{ github.workflow }}",
+            "run_id": "${{ github.run_id }}",
+            "commit_sha": "${{ github.sha }}",
+            "actor": "${{ github.actor }}",
+            "raw_logs": "CI test failure in ${{ github.workflow }} (run #${{ github.run_id }})"
+          }
+          EOF
+```
+
+---
+
+### Step 6: Configure GitHub Repository Secret
+1. In your repository on GitHub, go to **Settings &rarr; Secrets and variables &rarr; Actions**.
+2. Click **New repository secret**.
+3. Name: `SH_CICD_WEBHOOK_URL`
+4. Value: `https://<your-ngrok-or-domain>.ngrok-free.app/webhook/github`
+5. Click **Add secret**.
+
+---
+
+### Step 7: Verify End-to-End Autonomous Repair
+1. Intentionally commit a code bug to your repository (e.g. missing colon or bad return value in a function).
+2. Push the commit: `git push origin main`.
+3. GitHub Actions triggers and fails during the test step.
+4. The failure step dispatches the event to `/webhook/github`.
+5. SH-CICD multi-agent pipeline activates:
+   - **Dispatcher** parses error traceback.
+   - **Context Gatherer** pulls offending source code and tests via GitHub REST API.
+   - **Engineer** generates surgical fix and verifies tests pass in sandbox.
+   - **Reviewer** audits security and creates branch `sh-cicd/auto-fix-...`.
+6. Open your GitHub repository **Pull Requests** tab &rarr; your **Auto-Fixed PR is waiting for review and 1-click merge**!
+
 
 ---
 

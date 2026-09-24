@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}SH-CICD | Self-Healing CI/CD Multi-Agent AI{% endblock %}</title>
+  <title>{% block title %}Agentic Autofix Pipeline in GitHub | SH-CICD{% endblock %}</title>
   
   <!-- Google Fonts: Poppins & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,8 +30,8 @@
         <i class="fas fa-microchip"></i>
       </div>
       <div class="logo-title">
-        <h2>SH-CICD</h2>
-        <span>Multi-Agent AI Healer</span>
+        <h2>Agentic Autofix</h2>
+        <span>Pipeline in GitHub</span>
       </div>
     </div>
 
@@ -103,18 +103,147 @@
       </div>
 
       <div class="header-actions">
+        <button class="btn btn-secondary" onclick="openModal('connectRepoModal')">
+          <i class="fab fa-github"></i>
+          <span>Connect Your GitHub Repo</span>
+        </button>
         <button class="btn btn-primary" onclick="openModal('simulationModal')">
           <i class="fas fa-bolt"></i>
           <span>Simulate CI Failure</span>
         </button>
-        <span class="badge badge-info" style="padding: 8px 14px;">
-          <i class="fab fa-github"></i> demo-user/sh-cicd-demo
-        </span>
       </div>
     </header>
 
     {% block content %}{% endblock %}
   </main>
+</div>
+
+<!-- CONNECT GITHUB REPO MODAL -->
+<div id="connectRepoModal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 800px;">
+    <div class="modal-header">
+      <h3 style="display: flex; align-items: center; gap: 10px;">
+        <i class="fab fa-github" style="color: var(--cyan);"></i> Connect Your GitHub Repository to Agentic Autofix
+      </h3>
+      <button class="close-modal-btn" onclick="closeModal('connectRepoModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 18px;">
+        Follow this 4-step wizard to connect your GitHub repository. Once connected, whenever a build or test fails in GitHub Actions, SH-CICD will autonomously diagnose, fix, test, and open an Auto-Fixed Pull Request!
+      </p>
+
+      <!-- Step Navigation Pills -->
+      <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; overflow-x: auto;">
+        <button type="button" class="btn btn-sm btn-primary" id="tab-btn-1" onclick="showConnectTab(1)">
+          1. GitHub PAT & Repo
+        </button>
+        <button type="button" class="btn btn-sm btn-secondary" id="tab-btn-2" onclick="showConnectTab(2)">
+          2. Webhook Setup
+        </button>
+        <button type="button" class="btn btn-sm btn-secondary" id="tab-btn-3" onclick="showConnectTab(3)">
+          3. Actions Workflow
+        </button>
+        <button type="button" class="btn btn-sm btn-secondary" id="tab-btn-4" onclick="showConnectTab(4)">
+          4. Test & Verification
+        </button>
+      </div>
+
+      <!-- TAB 1: PAT & Repo -->
+      <div id="connect-tab-1" class="connect-tab-content">
+        <h4 style="font-size: 0.95rem; margin-bottom: 8px; color: #fff;">Step 1: Provide GitHub Personal Access Token (PAT)</h4>
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 14px;">
+          Create a classic token at <a href="https://github.com/settings/tokens" target="_blank" style="color: var(--cyan); text-decoration: underline;">GitHub Developer Settings &rarr; Personal Access Tokens</a> with <code>repo</code> and <code>workflow</code> scopes.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 4px;">GitHub PAT Token (classic)</label>
+            <input type="password" id="modal_gh_token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace;">
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 4px;">Target Repository (owner/repo)</label>
+            <input type="text" id="modal_gh_repo" placeholder="your-username/your-repo-name" style="width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm);">
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="verifyRepoModalAccess()">
+              <i class="fas fa-shield-check"></i> Verify Token & Repo Access
+            </button>
+            <span id="repoVerifyResult" style="font-size: 0.82rem;"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Webhook Setup -->
+      <div id="connect-tab-2" class="connect-tab-content" style="display: none;">
+        <h4 style="font-size: 0.95rem; margin-bottom: 8px; color: #fff;">Step 2: Expose Local Server & Register Webhook</h4>
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 12px;">
+          If running locally, expose port 5000 using ngrok: <code>ngrok http 5000</code> or Cloudflare: <code>cloudflared tunnel --url http://localhost:5000</code>. Then paste your forwarding URL below:
+        </p>
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 4px;">Public Webhook Endpoint URL</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="modal_webhook_url" value="http://127.0.0.1:5000/webhook/github" style="flex: 1; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="copyModalField('modal_webhook_url')">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+        </div>
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 4px;">Webhook Secret (HMAC key)</label>
+          <input type="text" id="modal_webhook_secret" value="sh_cicd_secret_2026" style="width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; border-radius: var(--radius-sm);">
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="autoRegisterWebhookFromModal()">
+            <i class="fas fa-magic"></i> Auto-Register Webhook on GitHub
+          </button>
+          <span id="webhookRegResult" style="font-size: 0.82rem;"></span>
+        </div>
+      </div>
+
+      <!-- TAB 3: Actions Workflow -->
+      <div id="connect-tab-3" class="connect-tab-content" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h4 style="font-size: 0.95rem; color: #fff;">Step 3: Add Self-Healing Workflow to Your Repo</h4>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="copyModalWorkflowYaml()">
+            <i class="fas fa-copy"></i> Copy YAML
+          </button>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 8px;">
+          Save this file in your repo at: <code>.github/workflows/autofix.yml</code>
+        </p>
+        <pre id="modalWorkflowYamlCode" style="background: #050811; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; font-size: 0.76rem; color: #38bdf8; max-height: 200px; overflow-y: auto; font-family: 'JetBrains Mono', monospace;"></pre>
+      </div>
+
+      <!-- TAB 4: Test & Verify -->
+      <div id="connect-tab-4" class="connect-tab-content" style="display: none;">
+        <h4 style="font-size: 0.95rem; margin-bottom: 8px; color: #fff;">Step 4: Configure Secret & Watch Agentic Autofix</h4>
+        <div style="background: var(--bg-input); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 14px;">
+          <p style="color: #fff; font-size: 0.84rem; margin-bottom: 6px;">
+            <strong>A. Add Secret on GitHub:</strong>
+          </p>
+          <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 4px;">
+            Repo &rarr; <strong>Settings &rarr; Secrets and variables &rarr; Actions &rarr; New repository secret</strong>
+          </p>
+          <p style="font-size: 0.8rem; color: var(--cyan);">
+            Name: <code>SH_CICD_WEBHOOK_URL</code><br>
+            Value: <span id="secretValuePreview">https://your-tunnel.ngrok-free.app/webhook/github</span>
+          </p>
+        </div>
+        <div style="background: var(--bg-input); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          <p style="color: #fff; font-size: 0.84rem; margin-bottom: 6px;">
+            <strong>B. Intentionally Introduce Error & Push:</strong>
+          </p>
+          <p style="color: var(--text-muted); font-size: 0.8rem;">
+            Break a function or test, commit, and push. GitHub Actions fails &rarr; delivers webhook &rarr; SH-CICD agents diagnose, fix, test, and open an <strong>Auto-Fixed PR</strong> in &lt; 3 seconds!
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a href="/settings" class="btn btn-secondary">Open Full Settings</a>
+      <button class="btn btn-primary" onclick="closeModal('connectRepoModal')">Done</button>
+    </div>
+  </div>
 </div>
 
 <!-- SIMULATION MODAL -->

@@ -186,3 +186,108 @@ class GitHubService:
             return {"success": False, "error": res.json().get("message", "Failed to create PR")}
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+    def verify_repository_access(self, target_repo=None):
+        """Verify repository existence and verify PAT push/pull permissions."""
+        repo = target_repo or self.repo_name
+        if self.demo_mode or not self.token:
+            return {
+                "valid": True,
+                "mode": "demo",
+                "repo": repo,
+                "permissions": {"push": True, "pull": True, "admin": False},
+                "default_branch": "main",
+                "message": "Demo mode active (simulated GitHub connection)."
+            }
+
+        url = f"{self.base_url}/repos/{repo}"
+        try:
+            res = requests.get(url, headers=self.headers, timeout=10)
+            if res.status_code == 200:
+                data = res.json()
+                permissions = data.get("permissions", {})
+                can_push = permissions.get("push", False)
+                return {
+                    "valid": True,
+                    "mode": "live",
+                    "repo": repo,
+                    "full_name": data.get("full_name"),
+                    "default_branch": data.get("default_branch", "main"),
+                    "permissions": permissions,
+                    "can_push": can_push,
+                    "private": data.get("private", False)
+                }
+            elif res.status_code == 404:
+                return {"valid": False, "error": f"Repository '{repo}' not found or PAT lacks access."}
+            elif res.status_code == 401:
+                return {"valid": False, "error": "Invalid GitHub Personal Access Token (PAT)."}
+            else:
+                return {"valid": False, "error": res.json().get("message", f"HTTP {res.status_code}")}
+        except Exception as e:
+            return {"valid": False, "error": str(e)}
+
+    def create_repo_webhook(self, webhook_url, secret=None):
+        """Register a repository webhook for workflow_run and check_run events."""
+        if self.demo_mode:
+            return {
+                "success": True,
+                "mode": "demo",
+                "webhook_id": 999999,
+                "url": webhook_url,
+                "events": ["workflow_run", "check_run"],
+                "message": "Demo webhook simulated successfully."
+            }
+
+        url = f"{self.base_url}/repos/{self.repo_name}/hooks"
+        payload = {
+            "name": "web",
+            "active": True,
+            "events": ["workflow_run", "check_run"],
+            "config": {
+                "url": webhook_url,
+                "content_type": "json",
+                "secret": secret or "",
+                "insecure_ssl": "0"
+            }
+        }
+        try:
+            res = requests.post(url, json=payload, headers=self.headers, timeout=10)
+            if res.status_code in (200, 201):
+                data = res.json()
+                return {
+                    "success": True,
+                    "mode": "live",
+                    "webhook_id": data.get("id"),
+                    "url": webhook_url,
+                    "events": data.get("events", [])
+                }
+            return {
+                "success": False,
+                "error": res.json().get("message", "Failed to create webhook.")
+            }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_workflow_run_logs(self, run_id):
+        """Retrieve failure logs from GitHub Actions jobs for a specific workflow run."""
+        if self.demo_mode or not self.token:
+            return None
+
+        url = f"{self.base_url}/repos/{self.repo_name}/actions/runs/{run_id}/jobs"
+        try:
+            res = requests.get(url, headers=self.headers, timeout=10)
+            if res.status_code != 200:
+                return None
+            jobs = res.json().get("jobs", [])
+            for job in jobs:
+                if job.get("conclusion") == "failure":
+                    job_id = job.get("id")
+                    logs_url = f"{self.base_url}/repos/{self.repo_name}/actions/jobs/{job_id}/logs"
+                    log_res = requests.get(logs_url, headers=self.headers, timeout=15)
+                    if log_res.status_code == 200:
+                        return log_res.text
+            return None
+        except Exception as e:
+            print(f"[GitHubService Error] Could not fetch workflow run logs: {e}")
+            return None
+

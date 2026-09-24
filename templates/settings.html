@@ -78,9 +78,14 @@
         </div>
       </div>
 
-      <div style="margin-top: 16px; background: #080d1a; padding: 12px; border-radius: var(--radius-sm); border: 1px dashed var(--border-color);">
-        <span style="font-size: 0.76rem; color: var(--cyan);"><i class="fas fa-info-circle"></i> GitHub Webhook URL Endpoint:</span>
-        <code style="font-size: 0.8rem; color: #fff; display: block; margin-top: 4px;">http://your-server-or-ngrok/webhook/github</code>
+      <div style="margin-top: 16px; background: #080d1a; padding: 14px; border-radius: var(--radius-sm); border: 1px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <span style="font-size: 0.76rem; color: var(--cyan);"><i class="fas fa-info-circle"></i> GitHub Webhook URL Endpoint:</span>
+          <code style="font-size: 0.8rem; color: #fff; display: block; margin-top: 4px;">http://your-server-or-ngrok/webhook/github</code>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="openModal('connectRepoModal')">
+          <i class="fas fa-magic"></i> Open 4-Step Connection Assistant &rarr;
+        </button>
       </div>
     </div>
 

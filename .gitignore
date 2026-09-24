@@ -1,0 +1,33 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*/__pycache__/
+*/*/__pycache__/
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment variables & secrets (keep .env.example)
+.env
+!.env.example
+
+# Local database files
+*.db
+*.sqlite3
+
+# Nested duplicate folder
+sh-cicd/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

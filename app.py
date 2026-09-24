@@ -178,6 +178,95 @@ def api_test_github():
     return jsonify({"authenticated": is_auth})
 
 
+@app.route("/api/connect-repo/verify", methods=["POST"])
+def api_connect_repo_verify():
+    """Verify GitHub repository access and permissions using token."""
+    data = request.get_json() or {}
+    settings = get_settings()
+    token = data.get("token") or settings.get("github_token", "")
+    repo_name = data.get("repo_name") or settings.get("target_repo", "")
+    demo_mode = data.get("demo_mode", False if token else True)
+
+    gh = GitHubService(token=token, repo_name=repo_name, demo_mode=demo_mode)
+    res = gh.verify_repository_access(repo_name)
+    return jsonify(res)
+
+
+@app.route("/api/connect-repo/setup-webhook", methods=["POST"])
+def api_connect_repo_setup_webhook():
+    """Automatically create webhook in target GitHub repository."""
+    data = request.get_json() or {}
+    settings = get_settings()
+    token = data.get("token") or settings.get("github_token", "")
+    repo_name = data.get("repo_name") or settings.get("target_repo", "")
+    webhook_url = data.get("webhook_url", "")
+    secret = data.get("webhook_secret") or settings.get("webhook_secret", "")
+
+    if not webhook_url:
+        return jsonify({"success": False, "error": "Webhook URL is required."}), 400
+
+    gh = GitHubService(token=token, repo_name=repo_name, demo_mode=not bool(token))
+    res = gh.create_repo_webhook(webhook_url=webhook_url, secret=secret)
+    return jsonify(res)
+
+
+@app.route("/api/connect-repo/workflow-yaml", methods=["GET"])
+def api_connect_repo_workflow_yaml():
+    """Return ready-to-use GitHub Actions workflow YAML for user repository."""
+    webhook_url = request.args.get("webhook_url", "https://your-ngrok-or-domain.ngrok-free.app/webhook/github")
+    workflow_yaml = f"""name: Python CI with Agentic Autofix
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Test Suite
+        id: run_tests
+        run: |
+          python -m unittest discover -s . -p "test_*.py"
+
+      - name: Trigger Agentic Autofix on Failure
+        if: failure()
+        env:
+          SH_CICD_WEBHOOK: ${{{{ secrets.SH_CICD_WEBHOOK_URL }}}}
+        run: |
+          echo "CI Failure detected! Dispatching to SH-CICD Agentic Autofix..."
+          curl -X POST "${{SH_CICD_WEBHOOK:-{webhook_url}}}" \\
+            -H "Content-Type: application/json" \\
+            -d @- << 'EOF'
+          {{
+            "repository": "${{{{ github.repository }}}}",
+            "workflow": "${{{{ github.workflow }}}}",
+            "run_id": "${{{{ github.run_id }}}}",
+            "commit_sha": "${{{{ github.sha }}}}",
+            "actor": "${{{{ github.actor }}}}",
+            "raw_logs": "CI test failure in ${{{{ github.workflow }}}} (run #${{{{ github.run_id }}}})"
+          }}
+          EOF
+"""
+    return jsonify({"yaml": workflow_yaml})
+
+
 @app.route("/api/simulate-failure", methods=["POST"])
 def api_simulate_failure():
     """

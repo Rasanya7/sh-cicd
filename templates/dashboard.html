@@ -1,10 +1,27 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard | SH-CICD Command Center{% endblock %}
-{% block page_title %}DevOps Command Center{% endblock %}
-{% block page_subtitle %}Real-time self-healing CI/CD pipeline monitoring and multi-agent dispatch{% endblock %}
+{% block title %}Agentic Autofix Pipeline in GitHub | DevOps Dashboard{% endblock %}
+{% block page_title %}Agentic Autofix Command Center{% endblock %}
+{% block page_subtitle %}Real-time self-healing CI/CD pipeline monitoring and multi-agent dispatch on GitHub{% endblock %}
 
 {% block content %}
+<!-- REPOSITORY CONNECTION BANNER -->
+<div style="background: linear-gradient(90deg, rgba(56, 189, 248, 0.12), rgba(129, 140, 248, 0.12)); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-md); padding: 14px 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+  <div style="display: flex; align-items: center; gap: 14px;">
+    <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(56, 189, 248, 0.2); display: flex; align-items: center; justify-content: center; color: var(--cyan); font-size: 1.1rem;">
+      <i class="fab fa-github"></i>
+    </div>
+    <div>
+      <strong style="color: #fff; font-size: 0.92rem;">Connect Your GitHub Repository to Agentic Autofix</strong>
+      <p style="color: var(--text-muted); font-size: 0.78rem; margin-top: 2px;">
+        Intercept real GitHub Actions pipeline failures, synthesize surgical code repairs, and create Auto-Fixed Pull Requests automatically.
+      </p>
+    </div>
+  </div>
+  <button class="btn btn-secondary btn-sm" onclick="openModal('connectRepoModal')" style="white-space: nowrap;">
+    <i class="fas fa-plug"></i> Setup Repository Integration &rarr;
+  </button>
+</div>
 <!-- STAT CARDS -->
 <div class="stats-grid">
   <div class="stat-card">

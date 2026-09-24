@@ -66,6 +66,21 @@ class TestFlaskRoutes(unittest.TestCase):
         self.assertTrue(data.get("success"))
         self.assertEqual(data.get("verdict"), "APPROVED")
 
+    def test_connect_repo_endpoints(self):
+        # 1. Verify endpoint
+        res = self.client.post("/api/connect-repo/verify", json={"demo_mode": True, "repo_name": "test/repo"})
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertTrue(data.get("valid"))
+
+        # 2. Workflow YAML endpoint
+        res = self.client.get("/api/connect-repo/workflow-yaml?webhook_url=https://test.ngrok.app/webhook/github")
+        self.assertEqual(res.status_code, 200)
+        data = json.loads(res.data)
+        self.assertIn("name: Python CI with Agentic Autofix", data.get("yaml", ""))
+        self.assertIn("Trigger Agentic Autofix on Failure", data.get("yaml", ""))
+
+
 
 if __name__ == "__main__":
     unittest.main()
